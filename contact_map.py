@@ -293,7 +293,9 @@ for i in range(len(structure)):
     # Matplotlib part
     plt.figure(str(i))
     # flipud lets us flip the matrix up and down (as we will reverse the y axis)
-    plt.imshow(numpy.flipud(dist_matrix), interpolation='none', cmap=plt.get_cmap('hot'))
+    #~ plt.imshow(numpy.flipud(dist_matrix), interpolation='none', cmap=plt.get_cmap('hot'))
+    # No need to flip anything here, we'll flip later
+    plt.imshow(dist_matrix, interpolation='none', cmap=plt.get_cmap('hot'))
     ax = plt.gca()
     ax.set_xticks(range(len(chainA_names)))
     ax.set_xticklabels([str(x+1) + " " + chainA_names[x] for x in range(len(chainA_names))])
@@ -302,6 +304,8 @@ for i in range(len(structure)):
     numbers = [y+1 for y in list(reversed(range(len(chainB_names))))]
     # [::-1] reverses a list
     ax.set_yticklabels([str(numbers[x]) + " " + chainB_names[::-1][x] for x in range(len(chainB_names))])
+    # Now we're flippin'
+    ax.invert_yaxis()
     # Rotates the xticks labels
     plt.xticks(rotation=90)
     plt.title(pdb_code + "_" + str(i+1))
