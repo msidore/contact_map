@@ -250,66 +250,69 @@ def sliced_min(matrix):
 
 ######################## Main ########################
 
-# In case the pdb comes from preddimer, fixes the pdb for use with biopython
-pdb_code, pdb_filename = fix_pdb(pdb_code, pdb_filename)
+if __name__ == '__main__':
+    # In case the pdb comes from preddimer, fixes the pdb for use with biopython
+    pdb_code, pdb_filename = fix_pdb(pdb_code, pdb_filename)
 
-# Loading the pdb into a biopython module
-structure = PDBParser(QUIET=True).get_structure(pdb_code, pdb_filename)
+    # Loading the pdb into a biopython module
+    structure = PDBParser(QUIET=True).get_structure(pdb_code, pdb_filename)
 
-# Loading the biopython module for writing pdbs
-io = PDBIO()
+    # Loading the biopython module for writing pdbs
+    io = PDBIO()
 
-# Loop through all the models
-for i in range(len(structure)):
-    # Selecting the ith model
-    model = structure[i]
+    # Loop through all the models
+    for i in range(len(structure)):
+        # Selecting the ith model
+        model = structure[i]
 
-    io.set_structure(model)
+        io.set_structure(model)
 
-    # Writing a separate model file
-    io.save(directory + pdb_code + "_model_" + str(i+1) + ".pdb")
+        # Writing a separate model file
+        io.save(directory + pdb_code + "_model_" + str(i+1) + ".pdb")
 
-    # Calculates the distance matrix between chain A and B
-    dist_matrix = calc_dist_matrix(model["A"], model["B"])
+        # Calculates the distance matrix between chain A and B
+        dist_matrix = calc_dist_matrix(model["A"], model["B"])
 
-    # Gets the residue names
-    try:
-        chainA_names = get_residue_names(model[chainA])
-    except:
-        print "No chain named %s" % (chainA)
-        exit()
-    try:
-        chainB_names = get_residue_names(model[chainB])
-    except:
-        print "No chain named %s" % (chainB)
-        exit()
+        # Gets the residue names
+        try:
+            chainA_names = get_residue_names(model[chainA])
+        except:
+            print "No chain named %s" % (chainA)
+            exit()
+        try:
+            chainB_names = get_residue_names(model[chainB])
+        except:
+            print "No chain named %s" % (chainB)
+            exit()
 
-    # Cutoff handling
-    if cutoff_max != False:
-        dist_matrix = sliced_max(dist_matrix)
-    if cutoff_min != False:
-        dist_matrix = sliced_min(dist_matrix)
+        # Cutoff handling
+        if cutoff_max != False:
+            dist_matrix = sliced_max(dist_matrix)
+        if cutoff_min != False:
+            dist_matrix = sliced_min(dist_matrix)
 
-    # Matplotlib part
-    plt.figure(str(i))
-    # flipud lets us flip the matrix up and down (as we will reverse the y axis)
-    #~ plt.imshow(numpy.flipud(dist_matrix), interpolation='none', cmap=plt.get_cmap('hot'))
-    # No need to flip anything here, we'll flip later
-    plt.imshow(dist_matrix, interpolation='none', cmap=plt.get_cmap('hot'))
-    ax = plt.gca()
-    ax.set_xticks(range(len(chainA_names)))
-    ax.set_xticklabels([str(x+1) + " " + chainA_names[x] for x in range(len(chainA_names))])
-    ax.set_yticks(range(len(chainB_names)))
-    # Get the numbering right
-    numbers = [y+1 for y in list(reversed(range(len(chainB_names))))]
-    # [::-1] reverses a list
-    ax.set_yticklabels([str(numbers[x]) + " " + chainB_names[::-1][x] for x in range(len(chainB_names))])
-    # Now we're flippin'
-    ax.invert_yaxis()
-    # Rotates the xticks labels
-    plt.xticks(rotation=90)
-    plt.title(pdb_code + "_" + str(i+1))
-    # Add the colored scale
-    plt.colorbar()
-    # Saving
-    plt.savefig(directory + pdb_code + "_contactmap_" + str(i+1) + ".png", bbox_inches='tight')
+        # Matplotlib part
+        plt.figure(str(i))
+        # flipud lets us flip the matrix up and down (as we will reverse the y axis)
+        #~ plt.imshow(numpy.flipud(dist_matrix), interpolation='none', cmap=plt.get_cmap('hot'))
+        # No need to flip anything here, we'll flip later
+        plt.imshow(dist_matrix, interpolation='none', cmap=plt.get_cmap('hot'))
+        plt.grid(True, color='green')
+        ax = plt.gca()
+        ax.set_xticks(range(len(chainA_names)))
+        ax.set_xticklabels([str(x+1) + " " + chainA_names[x] for x in range(len(chainA_names))])
+        ax.set_yticks(range(len(chainB_names)))
+        # Get the numbering right
+        numbers = [y+1 for y in list(reversed(range(len(chainB_names))))]
+        # [::-1] reverses a list
+        ax.set_yticklabels([str(numbers[x]) + " " + chainB_names[::-1][x] for x in range(len(chainB_names))][::-1])
+        # Now we're flippin'
+        ax.invert_yaxis()
+        plt.plot(ax.get_xlim(), ax.get_ylim(), ls="--", c=".3")
+        # Rotates the xticks labels
+        plt.xticks(rotation=90)
+        plt.title(pdb_code + "_" + str(i+1))
+        # Add the colored scale
+        plt.colorbar()
+        # Saving
+        plt.savefig(directory + pdb_code + "_contactmap_" + str(i+1) + ".png", bbox_inches='tight')
